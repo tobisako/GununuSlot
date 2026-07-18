@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ぐぬぬスロット GununuSlot（プレイ）</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<style>
+  :root{
+    --prim:#8082C6;   /* Antibes × dolphin */
+    --sec:#3138AC;
+    --mid:#5D5FB6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#ffffff;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,Meiryo,sans-serif;
+    -webkit-user-select:none;user-select:none}
+
+  /* ---- Antibes × dolphin backdrop ---- */
+  .deco{position:fixed;pointer-events:none;z-index:0}
+  .deco.stripes{left:40px;right:40px;bottom:28px;height:40px}
+  .deco.stripes i{position:absolute;left:0;right:0;height:1px;background:var(--prim);display:block}
+  .deco.dotcol{top:180px;left:16px;display:flex;flex-direction:column;gap:9px;opacity:.42}
+  .deco.dotcol i{width:12px;height:12px;border-radius:50%;display:block}
+  .deco.corner{bottom:78px;right:26px;width:110px;height:110px;
+    border-bottom:2px solid var(--prim);border-right:2px solid var(--prim);opacity:.28}
+  .deco.slab{bottom:-30px;left:-40px;width:260px;height:170px;background:var(--sec);
+    opacity:.08;transform:rotate(-8deg);border-radius:8px}
+  .deco.chev{right:60px;top:40px;opacity:.5;transform:rotate(-17deg)}
+
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+  #stage{position:relative;transform-origin:center center}
+
+  /* ---- WinForms window ---- */
+  #form{position:absolute;left:0;top:0;background:#F0F0F0;border:1px solid #7d7d7d;
+    box-shadow:0 14px 44px rgba(49,56,172,.25), 0 2px 8px rgba(0,0,0,.18)}
+  #tbar{height:30px;background:#ffffff;display:flex;align-items:center;gap:8px;padding:0 10px;
+    border-bottom:1px solid #d5d5d5;font-size:13px;color:#111}
+  #tbar img{width:16px;height:16px;object-fit:cover;border-radius:2px}
+  #tbar .btns{margin-left:auto;display:flex;gap:2px;color:#444}
+  #tbar .btns i{width:30px;text-align:center;font-style:normal;font-size:12px;font-family:Segoe UI,system-ui,sans-serif}
+  #tbar .btns i.x:hover{background:#e81123;color:#fff}
+  #client{position:relative}
+
+  button.wf{position:absolute;height:24px;background:#E1E1E1;border:1px solid #ADADAD;
+    font-size:13px;font-family:inherit;color:#111;cursor:pointer}
+  button.wf:hover{background:#E5F1FB;border-color:#0078D7}
+  button.wf:active{background:#CCE4F7;border-color:#005499}
+  canvas.drum{position:absolute;background:#000}
+  #atari{position:absolute;right:64px;bottom:4px;font-size:12px;color:#111}
+  #atari.win{color:#d00000;font-weight:900}
+  #label2{position:absolute;right:10px;bottom:4px;font-size:12px;color:#666}
+  #sndbtn{position:absolute;right:8px;top:6px;width:34px;height:26px;font-size:15px;
+    background:#E1E1E1;border:1px solid #ADADAD;cursor:pointer}
+  #sndbtn.off{filter:grayscale(1);opacity:.5}
+
+  #ghlink{position:fixed;right:10px;bottom:8px;z-index:20;font-size:13px;font-weight:700;
+    color:var(--mid);text-decoration:none;background:rgba(255,255,255,.9);
+    padding:4px 12px;border-radius:999px;border:1px solid #d8d8de}
+  #ghlink:hover{background:#f0f1fb}
+  #hint{position:fixed;left:12px;bottom:8px;z-index:20;font-size:13px;color:#555;
+    background:rgba(255,255,255,.85);padding:4px 12px;border-radius:999px;border:1px solid #d8d8de}
+</style>
+</head>
+<body>
+<div class="deco stripes" aria-hidden="true"><i style="top:0;opacity:.25"></i><i style="top:10px;opacity:.33"></i><i style="top:20px;opacity:.41"></i><i style="top:30px;opacity:.49"></i></div>
+<div class="deco dotcol" aria-hidden="true"><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i></div>
+<div class="deco corner" aria-hidden="true"></div>
+<div class="deco slab" aria-hidden="true"></div>
+<div class="deco chev" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 100 100" fill="none"><path d="M30 20 L60 50 L30 80 M55 20 L85 50 L55 80" stroke="#8082C6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+<a id="ghlink" href="https://github.com/tobisako/GununuSlot" target="_blank" rel="noopener">↗ GitHub</a>
+<span id="hint">Space＝START／キー1・2・3＝STOP</span>
+
+<div id="wrap">
+  <div id="stage">
+    <div id="form">
+      <div id="tbar"><img src="assets/favicon.png" alt="">ぐぬぬスロット
+        <span class="btns"><i>─</i><i>□</i><i class="x">✕</i></span></div>
+      <div id="client">
+        <button class="wf" id="btnStart" style="left:180px;top:2px;width:150px">START</button>
+        <button id="sndbtn" title="サウンド ON/OFF">🔊</button>
+        <canvas class="drum" id="drum0" style="left:50px;top:40px"  width="150" height="360"></canvas>
+        <canvas class="drum" id="drum1" style="left:210px;top:40px" width="180" height="360"></canvas>
+        <canvas class="drum" id="drum2" style="left:400px;top:40px" width="160" height="360"></canvas>
+        <button class="wf stop" data-d="0" style="left:60px;top:400px;width:80px">STOP</button>
+        <button class="wf stop" data-d="1" style="left:220px;top:400px;width:80px">STOP</button>
+        <button class="wf stop" data-d="2" style="left:410px;top:400px;width:80px">STOP</button>
+        <span id="atari">---</span>
+        <span id="label2">label2</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============ 原作定数（Visual C++ 2008版 SlotDrum/SlotMachine より） ============ */
+const PIC_H=120, VISIBLE=3, DRUM_H=PIC_H*VISIBLE;
+const MODE={STOP:0, ROLL:1, SLOWDOWN:2, HANTEI:3};
+const SYM={0:'gunu01.jpg',1:'gunu02.jpg',2:'gunu03.jpg',3:'gunu04.jpg',4:'gunu05.jpg',
+           5:'gunu06.jpg',6:'gunu_A.jpg',7:'gunu_B.jpg',8:'gunu_C.jpg',9:'gunu_D.jpg',
+           98:'nuko_285c.jpg',99:'nuko_22886.png'};
+const DRUM_DEF=[                                   // InitDrum() のアイテム列そのまま
+  {w:150, items:[0,1,2,3,4,5,6,7,8,9,99]},
+  {w:180, items:[0,2,1,3,5,4,98,9,8,7,6,99]},
+  {w:160, items:[0,0,1,1,2,2,3,4,5,8,9,7,6,99]},
+];
+
+/* ============ 画像ロード ============ */
+const IMG={};
+let loaded=0, total=Object.keys(SYM).length;
+for(const k in SYM){ const im=new Image(); im.src='assets/'+SYM[k];
+  im.onload=()=>{ if(++loaded===total) drums.forEach(d=>d.draw()); }; IMG[k]=im; }
+
+/* ============ サウンド（リメイクで追加） ============ */
+let ac=null, soundOn=true;
+function au(){ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)();
+  if(ac.state==='suspended') ac.resume(); return ac; }
+function tone(f0,f1,dur,type,gain,when=0){ if(!soundOn) return; const c=au(),t=c.currentTime+when;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur); }
+const sndStart=()=>tone(220,440,.15,'triangle',.18);
+const sndStop =()=>tone(180,70,.12,'square',.2);
+const sndWin  =()=>{ tone(660,660,.12,'square',.16); tone(880,880,.12,'square',.16,.12);
+                     tone(1320,1320,.25,'square',.16,.24); };
+
+/* ============ SlotDrum 移植 ============ */
+class Drum{
+  constructor(i,def){
+    this.items=def.items; this.n=def.items.length;
+    this.w=def.w; this.cv=document.getElementById('drum'+i);
+    this.ctx=this.cv.getContext('2d');
+    this.arrow=0; this.per=0; this.speed=0; this.mode=MODE.STOP;
+  }
+  move(p){ this.per+=p;
+    while(this.per>=100){ this.arrow=(this.arrow+1)%this.n; this.per-=100; } }
+  step(){                                       // DoDrum相当（描画は分離）
+    switch(this.mode){
+      case MODE.ROLL: this.move(this.speed); break;
+      case MODE.SLOWDOWN:                       // 原作の減速ロジックそのまま
+        if(this.speed>100) this.speed-=8;
+        else if(this.speed>50) this.speed-=3;
+        else this.speed--;
+        if(this.speed<=1) this.speed=1;
+        if(this.speed===1 && this.per===0){
+          this.speed=0; this.mode=MODE.HANTEI; sndStop();
+        }
+        this.move(this.speed); break;
+    }
+  }
+  itemNum(pos){ return this.items[(this.arrow+pos)%this.n]; }
+  draw(){
+    const c=this.ctx, w=this.w;
+    c.fillStyle='#000'; c.fillRect(0,0,w,DRUM_H);
+    for(let i=0;i<4;i++){                        // DrawOneDrum×4（iPos=3,2,1,0）
+      const iPos=3-i;
+      const y=iPos*PIC_H + Math.floor(PIC_H*this.per/100) - PIC_H;
+      const im=IMG[this.items[(this.arrow+i)%this.n]];
+      if(im&&im.complete&&im.naturalWidth) c.drawImage(im,0,0,im.naturalWidth,im.naturalHeight,0,y,w,PIC_H);
+      c.strokeStyle='red'; c.lineWidth=1;
+      c.beginPath(); c.moveTo(0,y+PIC_H+.5); c.lineTo(w,y+PIC_H+.5); c.stroke();   // コマ境界の赤線
+    }
+    c.strokeStyle='red';                          // 最後にドラム全体を赤線でくくる
+    c.strokeRect(.5,.5,w-1,DRUM_H-1);
+  }
+}
+const drums=DRUM_DEF.map((d,i)=>new Drum(i,d));
+
+/* ============ SlotMachine 移植 ============ */
+let atari=false, wasAllStopped=true;
+const rand=n=>Math.floor(Math.random()*n);
+function start(){
+  au(); sndStart();
+  drums.forEach(d=>{ d.speed=20+rand(200); d.mode=MODE.ROLL; });   // 20+rand(200)
+  atari=false; wasAllStopped=false; setAtari();
+}
+function stop(i){
+  const d=drums[i];
+  if(d.mode===MODE.HANTEI) d.speed=12;            // 詐欺モード：停止後にもう一度→1コマ送り
+  if(d.mode===MODE.STOP) return;                  // 初期状態では何もしない
+  d.mode=MODE.SLOWDOWN;
+  wasAllStopped=false;
+}
+function setAtari(){
+  const el=document.getElementById('atari');
+  el.textContent = atari ? '当り！！' : '---';
+  el.classList.toggle('win',atari);
+}
+function tickOnce(){                               // MainLoop 1周分のロジック
+  drums.forEach(d=>d.step());
+  if(!wasAllStopped && drums.every(d=>d.mode===MODE.HANTEI)){
+    wasAllStopped=true;
+    const [a,b,c]=drums.map(d=>d.itemNum(1));      // 中央段（GetItemNum(1)）
+    if(a===b&&a===c){ atari=true; sndWin(); }
+    setAtari();
+  }
+}
+/* 原作は DoEvents の無限ループ。ここでは固定60Hzのタイムステップで駆動し、
+   画面のリフレッシュレートやrAF間引きに左右されないようにする */
+const STEP_MS=1000/60;
+let lastT=performance.now(), acc=0;
+function frame(now){
+  acc+=now-lastT; lastT=now;
+  let n=0;
+  while(acc>=STEP_MS && n<8){ tickOnce(); acc-=STEP_MS; n++; }
+  if(acc>=STEP_MS) acc=0;                          // 追いつけない分は捨てる
+  drums.forEach(d=>d.draw());
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ============ UI ============ */
+document.getElementById('btnStart').addEventListener('click',start);
+document.querySelectorAll('.stop').forEach(b=>b.addEventListener('click',()=>stop(+b.dataset.d)));
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){ e.preventDefault(); start(); }
+  if(e.key>='1'&&e.key<='3') stop(+e.key-1);
+});
+const snd=document.getElementById('sndbtn');
+snd.addEventListener('click',()=>{ soundOn=!soundOn;
+  snd.classList.toggle('off',!soundOn); snd.textContent=soundOn?'🔊':'🔇'; });
+
+/* ============ レイアウト・スケーリング ============ */
+const CLIENT_W=580, CLIENT_H=455;
+function layout(){
+  document.getElementById('client').style.width=CLIENT_W+'px';
+  document.getElementById('client').style.height=CLIENT_H+'px';
+  const W=CLIENT_W+2, H=CLIENT_H+32;
+  const st=document.getElementById('stage');
+  st.style.width=W+'px'; st.style.height=H+'px';
+  const s=Math.min((innerWidth-16)/W,(innerHeight-56)/H,1.6);
+  st.style.transform=`scale(${s})`;
+}
+addEventListener('resize',layout); layout();
+</script>
+</body>
+</html>

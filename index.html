@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ぐぬぬスロット GununuSlot — HTML5リメイク</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --prim:#8082C6;    /* Antibes × dolphin: 青紫 */
+    --sec:#3138AC;     /* 深い青 */
+    --mid:#5D5FB6;
+    --ink:#1a1a1a;
+    --cardbd:#d8d8de;
+    --cream:#F6ECE2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#ffffff;color:var(--ink);
+    font-family:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,Meiryo,sans-serif;
+    font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;position:relative;overflow-x:hidden}
+  a{color:var(--mid)}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 22px}
+  .mono{font-family:"JetBrains Mono",monospace}
+
+  /* ---------- Antibes × dolphin decorations ---------- */
+  .deco{position:fixed;pointer-events:none;z-index:0}
+  .deco.dotcol{top:190px;left:16px;display:flex;flex-direction:column;gap:9px;opacity:.42}
+  .deco.dotcol i{width:12px;height:12px;border-radius:50%;display:block}
+  .deco.stripes{left:40px;right:40px;bottom:28px;height:40px}
+  .deco.stripes i{position:absolute;left:0;right:0;height:1px;background:var(--prim);display:block}
+  .deco.corner{bottom:78px;right:26px;width:128px;height:128px;
+    border-bottom:2px solid var(--prim);border-right:2px solid var(--prim);opacity:.28}
+  .deco.corner2{bottom:20px;right:24px;width:44px;height:44px;
+    border-bottom:2px solid var(--sec);border-right:2px solid var(--sec);opacity:.5}
+  .deco.slab{bottom:-30px;left:-40px;width:280px;height:180px;background:var(--sec);
+    opacity:.1;transform:rotate(-8deg);border-radius:8px}
+  .deco.chev{right:7%;top:420px;opacity:.92;transform:rotate(-17deg)}
+  .deco.grid4{left:6%;top:640px;opacity:.9;transform:rotate(4deg)}
+  .deco.grid4 i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--sec);display:block}
+  .deco.ball{right:9%;top:250px;width:23px;height:23px;border-radius:50%;background:var(--prim);opacity:.92}
+  main{position:relative;z-index:1}
+
+  /* ---------- header bar ---------- */
+  header{margin-top:26px;background:var(--prim);color:#fff;border-radius:6px;
+    padding:20px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    box-shadow:0 10px 28px rgba(128,130,198,.4)}
+  header .badge{width:56px;height:56px;flex:none;background:#fff;border-radius:10px;
+    display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.18);overflow:hidden}
+  header .badge img{width:44px;height:44px;object-fit:cover;border-radius:6px}
+  header h1{font-size:33px;font-weight:900;line-height:1.15}
+  header .en{font-size:13px;letter-spacing:.2em;color:#e8e9fb;margin-top:5px;font-weight:700}
+  header .tag{margin-left:auto;font-size:16px;color:#f0f1ff;max-width:290px;line-height:1.6;text-align:right}
+  header a.gh{flex:none;background:#fff;color:var(--sec);text-decoration:none;font-weight:900;
+    font-size:15px;padding:9px 16px;border-radius:999px;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+  header a.gh:hover{background:#eef0ff}
+  @media(max-width:680px){header .tag{margin-left:0;text-align:left}header h1{font-size:26px}}
+
+  /* ---------- intro ---------- */
+  .intro{margin:26px 0 6px;font-size:18px;line-height:1.9;max-width:860px}
+  .intro b{color:var(--sec)}
+
+  /* ---------- game stage ---------- */
+  .stage-frame{margin:22px 0 8px;background:#fff;border:1px solid var(--cardbd);border-radius:8px;
+    overflow:hidden;box-shadow:0 16px 44px rgba(49,56,172,.16)}
+  .stage-frame .bar-top{height:8px;background:linear-gradient(90deg,var(--sec) 0 30%,var(--prim) 30% 85%,var(--mid) 85%)}
+  .stage-frame iframe{display:block;width:100%;height:580px;border:0;background:#fff}
+  @media(max-width:680px){.stage-frame iframe{height:480px}}
+  .stage-bar{display:flex;align-items:center;gap:12px;padding:11px 16px;background:#fafaff;
+    border-top:1px solid var(--cardbd);font-size:15px;color:#333;flex-wrap:wrap}
+  .stage-bar .dot{width:10px;height:10px;border-radius:50%;background:var(--prim);box-shadow:0 0 8px var(--prim)}
+  .stage-bar a.full{margin-left:auto;text-decoration:none;font-weight:700;color:#fff;
+    background:var(--sec);padding:8px 16px;border-radius:6px}
+  .stage-bar a.full:hover{background:#272c8a}
+
+  /* ---------- how to play ---------- */
+  h2.sec{margin:40px 0 14px;font-size:24px;font-weight:900;display:flex;align-items:center;gap:10px}
+  h2.sec::before{content:"";width:10px;height:26px;background:var(--prim);border-radius:2px}
+  h2.sec .mono{font-size:13px;color:var(--mid);letter-spacing:.16em;font-weight:700;margin-left:4px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{background:#fff;border:1px solid var(--cardbd);border-radius:6px;padding:16px 18px;position:relative}
+  .step .n{position:absolute;top:-12px;left:14px;background:var(--sec);color:#fff;
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;padding:2px 10px;border-radius:999px}
+  .step .t{font-size:18px;font-weight:900;margin:6px 0 8px}
+  .step .d{font-size:16px;line-height:1.7;color:#333}
+  .step .d b{color:var(--sec)}
+  .step .d .small{font-size:14px;color:#666}
+
+  /* ---------- facts (stat blocks) ---------- */
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+  @media(max-width:860px){.facts{grid-template-columns:repeat(2,1fr)}}
+  .blk{border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,.1);background:#fff;
+    display:flex;flex-direction:column}
+  .blk .bt{background:var(--prim);color:#fff;font-size:20px;font-weight:900;padding:7px 14px;line-height:1.3}
+  .blk:nth-child(even) .bt{background:var(--sec)}
+  .blk .bb{background:var(--cream);padding:10px 14px 12px;font-size:16px;line-height:1.65;flex:1}
+  .blk .bb b{color:var(--sec)}
+
+  /* ---------- origin band ---------- */
+  .band{margin-top:34px;background:var(--cream);border-left:6px solid var(--mid);border-radius:4px;
+    padding:16px 22px}
+  .band .bl{font-size:15px;opacity:.7;margin-bottom:4px}
+  .band .bt2{font-size:18px;font-weight:500;line-height:1.85}
+  .band .bt2 b{font-weight:900;color:var(--sec)}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:44px;background:var(--prim);color:#fff;position:relative;z-index:1}
+  footer .fl{display:flex;gap:0;font-size:13px;padding:10px 22px;max-width:1020px;margin:0 auto;flex-wrap:wrap}
+  footer .fl span{flex:1;white-space:nowrap}
+  footer .fl span:nth-child(2){text-align:center}
+  footer .fl span:nth-child(3){text-align:right}
+  footer a{color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="deco dotcol" aria-hidden="true"><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i><i style="background:var(--prim)"></i><i style="background:var(--sec)"></i></div>
+<div class="deco stripes" aria-hidden="true"><i style="top:0;opacity:.25"></i><i style="top:10px;opacity:.33"></i><i style="top:20px;opacity:.41"></i><i style="top:30px;opacity:.49"></i></div>
+<div class="deco corner" aria-hidden="true"></div>
+<div class="deco corner2" aria-hidden="true"></div>
+<div class="deco slab" aria-hidden="true"></div>
+<div class="deco chev" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 100 100" fill="none"><path d="M30 20 L60 50 L30 80 M55 20 L85 50 L55 80" stroke="#8082C6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="deco grid4" aria-hidden="true"><i style="left:0;top:0"></i><i style="left:8px;top:0"></i><i style="left:16px;top:0"></i><i style="left:24px;top:0"></i><i style="left:0;top:8px"></i><i style="left:8px;top:8px"></i><i style="left:16px;top:8px"></i><i style="left:24px;top:8px"></i><i style="left:0;top:16px"></i><i style="left:8px;top:16px"></i><i style="left:16px;top:16px"></i><i style="left:24px;top:16px"></i><i style="left:0;top:24px"></i><i style="left:8px;top:24px"></i><i style="left:16px;top:24px"></i><i style="left:24px;top:24px"></i></div>
+<div class="deco ball" aria-hidden="true"></div>
+
+<main>
+  <div class="wrap">
+    <header>
+      <div class="badge"><img src="assets/favicon.png" alt="ぬこアイコン"></div>
+      <div>
+        <h1>ぐぬぬスロット GununuSlot</h1>
+        <div class="en mono">GUNUNU SLOT — HTML5 REMAKE</div>
+      </div>
+      <div class="tag">2012年頃に VC++2008 で作ったスロットマシンを、そのままブラウザで。</div>
+      <a class="gh" href="https://github.com/tobisako/GununuSlot" target="_blank" rel="noopener">↗ GitHub</a>
+    </header>
+
+    <p class="intro">
+      スロットマシン（一応ゲーム）です。<b>ぐぬぬキャラのドラムがくるくる回って、ストップボタンでゆっくり滑らかに停止</b>します。
+      2012年頃に <b>Visual C++ 2008（C++/CLI + Windows Forms）</b>で作った作品を、
+      <b>プラグイン不要の HTML5 / Canvas</b> に移植して復刻しました。
+      ドラムの画像もコマ境界の赤線も減速カーブも、原作のコードそのままです。滑らかさをお楽しみください。
+    </p>
+
+    <div class="stage-frame">
+      <div class="bar-top" aria-hidden="true"></div>
+      <iframe src="game.html" title="ぐぬぬスロット（プレイ画面）"></iframe>
+      <div class="stage-bar">
+        <span class="dot"></span>
+        <span>枠内の「START」を押すとその場で回せます（効果音あり・🔊で消音可）</span>
+        <a class="full" href="game.html" target="_blank" rel="noopener">↗ 全画面で開く</a>
+      </div>
+    </div>
+
+    <h2 class="sec">あそびかた<span class="mono">HOW TO PLAY</span></h2>
+    <div class="steps">
+      <div class="step"><span class="n">STEP 1</span>
+        <div class="t">START で回す</div>
+        <div class="d">3本のドラムが<b>毎回ランダムな速度</b>で回り出します（原作コードで速度 20＋rand(200)）。<span class="small">Spaceキーでも回せます。</span></div></div>
+      <div class="step"><span class="n">STEP 2</span>
+        <div class="t">STOP で止める</div>
+        <div class="d">1本ずつ減速し、コマに<b>ぴったり整列してゆっくり停止</b>。この滑らかさが本作の見どころです。<span class="small">キー1・2・3でも止められます。</span></div></div>
+      <div class="step"><span class="n">STEP 3</span>
+        <div class="t">中央の段をそろえる</div>
+        <div class="d">中央段の絵柄が3つそろうと、画面右下に<b>申し訳程度に小さく「当り！！」</b>。止まった後にもう一度STOPを押すと<b>1コマだけ進みます</b>。</div></div>
+    </div>
+
+    <h2 class="sec">この復刻について<span class="mono">FACTS</span></h2>
+    <div class="facts">
+      <div class="blk"><div class="bt">2012年頃</div>
+        <div class="bb"><b>Visual C++ 2008</b>（C++/CLI + Windows Forms）製として誕生</div></div>
+      <div class="blk"><div class="bt">C++/CLI → HTML5</div>
+        <div class="bb">DoEventsループを <b>requestAnimationFrame</b> に置き換え。減速カーブ（−8→−3→−1）は原作の値そのまま</div></div>
+      <div class="blk"><div class="bt">3ドラム・計37コマ</div>
+        <div class="bb">ぐぬぬ顔10種＋ぬこ2種の画像を<b>原作ファイルのまま再利用</b>（11＋12＋14コマ構成）</div></div>
+      <div class="blk"><div class="bt">UML図つき</div>
+        <div class="bb">リポジトリには<b>クラス図・シーケンス図</b>（Excel）も同梱。設計から追える教材構成</div></div>
+    </div>
+
+    <div class="band">
+      <div class="bl">原作について（リポジトリREADMEより）</div>
+      <div class="bt2">「スロットマシン（一応ゲーム）です。ぐぬぬキャラのドラムがくるくる回って、ストップボタンでゆっくり滑らかに停止します。<b>滑らかさをお楽しみください。</b>」
+        ——ドラム停止の気持ちよさを主役にした小品。停止済みドラムをもう一度押すと1コマ進む遊び（ソース内の呼び名は<b>「詐欺モード」</b>）も原作どおり搭載しています。</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="fl">
+      <span>原作・移植：<a href="https://github.com/tobisako" target="_blank" rel="noopener">tobisako</a></span>
+      <span>GununuSlot — ぐぬぬスロット</span>
+      <span><a href="https://github.com/tobisako/GununuSlot" target="_blank" rel="noopener">↗ GitHub（ソース・解説）</a></span>
+    </div>
+  </footer>
+</main>
+</body>
+</html>
